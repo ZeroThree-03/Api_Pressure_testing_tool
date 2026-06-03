@@ -8,10 +8,11 @@ import java.util.concurrent.atomic.AtomicBoolean;
 @Data
 public class ThreadManager {
 
-    private ExecutorService executor;
+    private volatile ExecutorService executor;
     private final AtomicBoolean running = new AtomicBoolean(false);
 
     public void init(int threadCount) {
+        shutdown();
         executor = Executors.newFixedThreadPool(threadCount);
     }
 

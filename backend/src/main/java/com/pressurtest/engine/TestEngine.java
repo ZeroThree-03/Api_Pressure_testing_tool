@@ -16,11 +16,22 @@ public class TestEngine {
 
     private final ThreadManager threadManager;
     private final AtomicBoolean running = new AtomicBoolean(false);
-    private ResultCollector currentCollector;
+    private volatile ResultCollector currentCollector;
+    private volatile Thread durationThread;
 
     public ResultCollector startTest(TestConfig config) {
         if (running.get()) {
             throw new IllegalStateException("已有测试正在运行");
+        }
+
+        if (config.getUrl() == null || config.getUrl().isBlank()) {
+            throw new IllegalArgumentException("URL不能为空");
+        }
+        if (config.getMethod() == null || config.getMethod().isBlank()) {
+            throw new IllegalArgumentException("HTTP方法不能为空");
+        }
+        if (config.getThreadCount() <= 0 || config.getThreadCount() > 1000) {
+            throw new IllegalArgumentException("线程数必须在1-1000之间");
         }
 
         running.set(true);
@@ -56,7 +67,7 @@ public class TestEngine {
         }
 
         if (config.getDuration() > 0) {
-            Thread durationThread = new Thread(() -> {
+            durationThread = new Thread(() -> {
                 try {
                     Thread.sleep(config.getDuration() * 1000L);
                     stopTest();
@@ -64,6 +75,7 @@ public class TestEngine {
                     Thread.currentThread().interrupt();
                 }
             });
+            durationThread.setDaemon(true);
             durationThread.start();
         }
 
@@ -72,6 +84,9 @@ public class TestEngine {
 
     public void stopTest() {
         running.set(false);
+        if (durationThread != null) {
+            durationThread.interrupt();
+        }
         threadManager.setRunning(false);
         threadManager.shutdown();
     }
