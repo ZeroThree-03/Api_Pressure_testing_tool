@@ -25,6 +25,7 @@ public class WorkerThread implements Callable<Void> {
     private final int loopCount;
     private final long thinkTimeMin;
     private final long thinkTimeMax;
+    private final int retryCount;
 
     @Override
     public Void call() throws Exception {
@@ -35,7 +36,7 @@ public class WorkerThread implements Callable<Void> {
             while (running.get() && (loopCount == -1 || count < loopCount)) {
                 if (!running.get()) break;
 
-                TestResult result = executeRequest(httpClient);
+                TestResult result = executeWithRetry(httpClient);
                 collector.addResult(result);
                 count++;
 
@@ -49,6 +50,23 @@ public class WorkerThread implements Callable<Void> {
         }
 
         return null;
+    }
+
+    private TestResult executeWithRetry(CloseableHttpClient httpClient) {
+        TestResult result = null;
+        for (int attempt = 0; attempt <= retryCount; attempt++) {
+            result = executeRequest(httpClient);
+            if ("success".equals(result.getStatus()) || attempt == retryCount) {
+                break;
+            }
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                break;
+            }
+        }
+        return result;
     }
 
     private TestResult executeRequest(CloseableHttpClient httpClient) {

@@ -40,7 +40,8 @@ public class TestEngine {
                     running,
                     config.getLoopCount(),
                     config.getThinkTimeMin(),
-                    config.getThinkTimeMax()
+                    config.getThinkTimeMax(),
+                    config.getRetryCount()
             );
 
             if (config.getStartDelay() > 0) {
@@ -96,5 +97,6 @@ public class TestEngine {
         private long thinkTimeMin = 0;
         private long thinkTimeMax = 0;
         private int timeout = 30;
+        private int retryCount = 3;
     }
 }
