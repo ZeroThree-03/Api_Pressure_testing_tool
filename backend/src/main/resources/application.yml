@@ -3,7 +3,7 @@ server:
 
 spring:
   datasource:
-    url: jdbc:sqlite:./data/pressurtest.db
+    url: jdbc:sqlite:./data/pressurtest.db?foreign_keys=ON
     driver-class-name: org.sqlite.JDBC
   sql:
     init:

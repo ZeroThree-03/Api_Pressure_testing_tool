@@ -31,9 +31,11 @@ CREATE TABLE IF NOT EXISTS scenario_steps (
     step_order INTEGER NOT NULL,
     name TEXT,
     config TEXT,
-    FOREIGN KEY (scenario_id) REFERENCES test_scenarios(id),
-    FOREIGN KEY (template_id) REFERENCES request_templates(id)
+    FOREIGN KEY (scenario_id) REFERENCES test_scenarios(id) ON DELETE CASCADE,
+    FOREIGN KEY (template_id) REFERENCES request_templates(id) ON DELETE SET NULL
 );
+CREATE INDEX IF NOT EXISTS idx_scenario_steps_scenario_id ON scenario_steps(scenario_id);
+CREATE INDEX IF NOT EXISTS idx_scenario_steps_template_id ON scenario_steps(template_id);
 
 -- Global Parameters Table
 CREATE TABLE IF NOT EXISTS global_params (
@@ -44,8 +46,9 @@ CREATE TABLE IF NOT EXISTS global_params (
     scope TEXT,
     scenario_id INTEGER,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (scenario_id) REFERENCES test_scenarios(id)
+    FOREIGN KEY (scenario_id) REFERENCES test_scenarios(id) ON DELETE CASCADE
 );
+CREATE INDEX IF NOT EXISTS idx_global_params_scenario_id ON global_params(scenario_id);
 
 -- Test Tasks Table
 CREATE TABLE IF NOT EXISTS test_tasks (
@@ -56,5 +59,6 @@ CREATE TABLE IF NOT EXISTS test_tasks (
     started_at DATETIME,
     completed_at DATETIME,
     result_summary TEXT,
-    FOREIGN KEY (scenario_id) REFERENCES test_scenarios(id)
+    FOREIGN KEY (scenario_id) REFERENCES test_scenarios(id) ON DELETE CASCADE
 );
+CREATE INDEX IF NOT EXISTS idx_test_tasks_scenario_id ON test_tasks(scenario_id);
