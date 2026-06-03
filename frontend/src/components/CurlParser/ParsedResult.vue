@@ -69,10 +69,14 @@ function handleSave() {
   emit('save', props.result)
 }
 
-function handleCopy() {
-  const text = JSON.stringify(props.result, null, 2)
-  navigator.clipboard.writeText(text)
-  ElMessage.success('已复制到剪贴板')
+async function handleCopy() {
+  try {
+    const text = JSON.stringify(props.result, null, 2)
+    await navigator.clipboard.writeText(text)
+    ElMessage.success('已复制到剪贴板')
+  } catch {
+    ElMessage.error('复制失败')
+  }
 }
 </script>
 

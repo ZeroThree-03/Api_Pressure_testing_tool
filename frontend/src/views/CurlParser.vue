@@ -26,7 +26,7 @@ async function handleParse(curl) {
     const response = await parseCurl(curl)
     parsedResult.value = response.data
   } catch (error) {
-    console.error('Parse error:', error)
+    ElMessage.error('解析失败，请检查curl命令格式')
   } finally {
     curlInputRef.value?.setLoading(false)
   }
