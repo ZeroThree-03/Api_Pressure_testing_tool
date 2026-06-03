@@ -20,7 +20,7 @@ watch(() => appStore.theme, (newTheme) => {
   isDark.value = newTheme === 'dark'
 })
 
-function handleThemeChange(value) {
-  appStore.setTheme(value ? 'dark' : 'light')
+function handleThemeChange() {
+  appStore.toggleTheme()
 }
 </script>
