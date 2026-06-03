@@ -1,0 +1,16 @@
+{
+  "name": "api-pressure-test-tool",
+  "version": "1.0.0",
+  "description": "API压测工具",
+  "scripts": {
+    "dev": "concurrently \"cd frontend && npm run dev\" \"cd backend && mvn spring-boot:run\"",
+    "build": "cd frontend && npm run build && cd ../backend && mvn clean package -DskipTests",
+    "build:electron": "npm run build && electron-builder",
+    "start:electron": "cd electron && npm start"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "electron": "^28.0.0",
+    "electron-builder": "^24.9.1"
+  }
+}
