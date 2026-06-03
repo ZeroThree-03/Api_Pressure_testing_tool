@@ -16,9 +16,17 @@ public class CurlController {
     private final CurlParserService curlParserService;
 
     @PostMapping("/parse")
-    public ResponseEntity<Map<String, Object>> parse(@RequestBody Map<String, String> request) {
-        String curl = request.get("curl");
-        Map<String, Object> result = curlParserService.parse(curl);
+    public ResponseEntity<Map<String, Object>> parse(@RequestBody Map<String, Object> request) {
+        String curl = (String) request.get("curl");
+        @SuppressWarnings("unchecked")
+        Map<String, String> variables = (Map<String, String>) request.get("variables");
+
+        Map<String, Object> result;
+        if (variables != null && !variables.isEmpty()) {
+            result = curlParserService.parseWithVariables(curl, variables);
+        } else {
+            result = curlParserService.parse(curl);
+        }
 
         Map<String, Object> response = new HashMap<>();
         response.put("code", 0);

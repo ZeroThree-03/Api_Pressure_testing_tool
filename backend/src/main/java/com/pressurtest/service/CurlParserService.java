@@ -124,4 +124,44 @@ public class CurlParserService {
 
         return params;
     }
+
+    public String substituteVariables(String text, Map<String, String> variables) {
+        if (text == null || variables == null || variables.isEmpty()) {
+            return text;
+        }
+        Pattern varPattern = Pattern.compile("\\$\\{([^}]+)\\}");
+        Matcher matcher = varPattern.matcher(text);
+        StringBuffer sb = new StringBuffer();
+        while (matcher.find()) {
+            String varName = matcher.group(1);
+            String replacement = variables.getOrDefault(varName, matcher.group(0));
+            matcher.appendReplacement(sb, Matcher.quoteReplacement(replacement));
+        }
+        matcher.appendTail(sb);
+        return sb.toString();
+    }
+
+    public Map<String, Object> parseWithVariables(String curl, Map<String, String> variables) {
+        Map<String, Object> result = parse(curl);
+
+        if (variables != null && !variables.isEmpty()) {
+            if (result.containsKey("url")) {
+                result.put("url", substituteVariables((String) result.get("url"), variables));
+            }
+            if (result.containsKey("body")) {
+                result.put("body", substituteVariables((String) result.get("body"), variables));
+            }
+            if (result.containsKey("headers")) {
+                @SuppressWarnings("unchecked")
+                Map<String, String> headers = (Map<String, String>) result.get("headers");
+                Map<String, String> substitutedHeaders = new LinkedHashMap<>();
+                for (Map.Entry<String, String> entry : headers.entrySet()) {
+                    substitutedHeaders.put(entry.getKey(), substituteVariables(entry.getValue(), variables));
+                }
+                result.put("headers", substitutedHeaders);
+            }
+        }
+
+        return result;
+    }
 }
