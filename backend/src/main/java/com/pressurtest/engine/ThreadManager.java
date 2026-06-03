@@ -1,11 +1,13 @@
 package com.pressurtest.engine;
 
 import lombok.Data;
+import org.springframework.stereotype.Component;
 
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 @Data
+@Component
 public class ThreadManager {
 
     private volatile ExecutorService executor;

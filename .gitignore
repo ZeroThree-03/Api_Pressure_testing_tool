@@ -1,0 +1,37 @@
+# 依赖
+node_modules/
+frontend/node_modules/
+electron/node_modules/
+
+# 构建产物
+backend/target/
+frontend/dist/
+release/
+
+# IDE
+.vscode/
+.idea/
+*.iml
+
+# 系统文件
+.DS_Store
+Thumbs.db
+
+# 日志
+*.log
+hs_err_*.log
+
+# 数据库
+backend/data/*.db
+
+# Maven
+apache-maven-3.9.6/
+maven.zip
+
+# 环境变量
+.env
+.env.local
+
+# 缓存
+*.cache
+*.tmp
