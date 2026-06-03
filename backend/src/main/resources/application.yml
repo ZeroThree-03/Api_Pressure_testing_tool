@@ -1,0 +1,26 @@
+server:
+  port: 8080
+
+spring:
+  datasource:
+    url: jdbc:sqlite:./data/pressurtest.db
+    driver-class-name: org.sqlite.JDBC
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:schema.sql
+
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+  global-config:
+    db-config:
+      id-type: auto
+
+pressurtest:
+  engine:
+    max-threads: 1000
+    default-connect-timeout: 5000
+    default-read-timeout: 30000
+    max-retry: 3
+    retry-interval: 1000
