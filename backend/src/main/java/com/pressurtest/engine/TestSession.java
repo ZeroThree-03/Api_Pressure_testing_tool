@@ -1,27 +1,33 @@
 package com.pressurtest.engine;
 
-import lombok.Data;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Component;
+import com.pressurtest.engine.TestEngine.TestConfig;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-@Component
-@RequiredArgsConstructor
-public class TestEngine {
+@Slf4j
+@Getter
+public class TestSession {
 
-    private final ThreadManager threadManager;
+    private final String taskId;
     private final AtomicBoolean running = new AtomicBoolean(false);
-    private volatile ResultCollector currentCollector;
+    private final ResultCollector collector = new ResultCollector();
     private volatile Thread durationThread;
+    private volatile ExecutorService executor;
+    private volatile long startTimeMillis;
+    private volatile List<Future<Void>> futures;
 
-    public ResultCollector startTest(TestConfig config) {
+    public TestSession(String taskId) {
+        this.taskId = taskId;
+    }
+
+    public void start(TestConfig config) {
         if (running.get()) {
-            throw new IllegalStateException("已有测试正在运行");
+            throw new IllegalStateException("任务已在运行中");
         }
 
         if (!config.hasSteps()) {
@@ -37,12 +43,10 @@ public class TestEngine {
         }
 
         running.set(true);
-        threadManager.setRunning(true);
-        threadManager.init(config.getThreadCount());
+        startTimeMillis = System.currentTimeMillis();
+        executor = Executors.newFixedThreadPool(config.getThreadCount());
 
-        currentCollector = new ResultCollector();
-
-        List<Future<Void>> futures = new ArrayList<>();
+        futures = new ArrayList<>();
         for (int i = 0; i < config.getThreadCount(); i++) {
             WorkerThread worker = new WorkerThread(
                     config.getMethod(),
@@ -50,7 +54,7 @@ public class TestEngine {
                     config.getHeaders(),
                     config.getBody(),
                     config.getSteps(),
-                    currentCollector,
+                    collector,
                     running,
                     config.getLoopCount(),
                     config.getThinkTimeMin(),
@@ -66,14 +70,14 @@ public class TestEngine {
                 }
             }
 
-            futures.add(threadManager.submit(worker));
+            futures.add(executor.submit(worker));
         }
 
         if (config.getDuration() > 0) {
             durationThread = new Thread(() -> {
                 try {
                     Thread.sleep(config.getDuration() * 1000L);
-                    stopTest();
+                    stop();
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
                 }
@@ -81,53 +85,54 @@ public class TestEngine {
             durationThread.setDaemon(true);
             durationThread.start();
         }
-
-        return currentCollector;
     }
 
-    public void stopTest() {
+    /**
+     * 等待所有 worker 完成
+     */
+    public void waitForCompletion() {
+        if (futures == null) return;
+        for (Future<Void> future : futures) {
+            try {
+                future.get();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                break;
+            } catch (ExecutionException e) {
+                log.warn("Worker execution error: {}", e.getCause().getMessage());
+            }
+        }
+        running.set(false);
+    }
+
+    public void stop() {
         running.set(false);
         if (durationThread != null) {
             durationThread.interrupt();
         }
-        threadManager.setRunning(false);
-        threadManager.shutdown();
+        if (executor != null && !executor.isShutdown()) {
+            executor.shutdown();
+            try {
+                if (!executor.awaitTermination(60, TimeUnit.SECONDS)) {
+                    executor.shutdownNow();
+                }
+            } catch (InterruptedException e) {
+                executor.shutdownNow();
+                Thread.currentThread().interrupt();
+            }
+        }
     }
 
     public boolean isRunning() {
         return running.get();
     }
 
-    public ResultCollector getCurrentCollector() {
-        return currentCollector;
+    public long getDurationSeconds() {
+        long elapsed = System.currentTimeMillis() - startTimeMillis;
+        return Math.max(1, elapsed / 1000);
     }
 
-    @Data
-    public static class TestConfig {
-        private String method;
-        private String url;
-        private Map<String, String> headers;
-        private String body;
-        private List<RequestStep> steps;
-        private int threadCount = 10;
-        private int loopCount = 1;
-        private long duration = 0;
-        private long startDelay = 0;
-        private long thinkTimeMin = 0;
-        private long thinkTimeMax = 0;
-        private int timeout = 30;
-        private int retryCount = 3;
-
-        public boolean hasSteps() {
-            return steps != null && !steps.isEmpty();
-        }
-    }
-
-    @Data
-    public static class RequestStep {
-        private String method;
-        private String url;
-        private Map<String, String> headers;
-        private String body;
+    public ResultCollector.MonitorData getMonitorData() {
+        return collector.getMonitorData(getDurationSeconds());
     }
 }

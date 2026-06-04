@@ -22,9 +22,23 @@ export function getTaskStatus(taskId) {
   })
 }
 
+export function getTasks() {
+  return request({
+    url: '/tasks',
+    method: 'get',
+  })
+}
+
 export function getTaskResult(taskId) {
   return request({
     url: `/tasks/${taskId}/result`,
     method: 'get',
+  })
+}
+
+export function deleteTask(taskId) {
+  return request({
+    url: `/tasks/${taskId}`,
+    method: 'delete',
   })
 }

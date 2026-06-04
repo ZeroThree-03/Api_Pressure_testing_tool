@@ -1,8 +1,13 @@
 import axios from 'axios'
 import { ElMessage } from 'element-plus'
 
+// In Electron production mode, use direct backend URL
+// In browser dev mode, use relative path with Vite proxy
+const isElectron = window.location.protocol === 'file:'
+const baseURL = isElectron ? 'http://localhost:8080/api' : '/api'
+
 const request = axios.create({
-  baseURL: '/api',
+  baseURL,
   timeout: 30000,
 })
 

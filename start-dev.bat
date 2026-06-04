@@ -1,37 +1,38 @@
 @echo off
+chcp 65001 >nul 2>&1
 echo ========================================
-echo   API压测工具 - 开发模式启动
+echo   API Pressure Test Tool - Dev Mode
 echo ========================================
 
 set JAVA_HOME=C:\Program Files\Eclipse Adoptium\jdk-17.0.19.10-hotspot
 set PATH=%JAVA_HOME%\bin;%PATH%
 
 echo.
-echo [1/3] 安装前端依赖...
+echo [1/3] Installing frontend dependencies...
 cd /d "%~dp0frontend"
 call npm install
 if errorlevel 1 (
-    echo 前端依赖安装失败
+    echo Frontend dependency install failed
     pause
     exit /b 1
 )
 
 echo.
-echo [2/3] 安装根目录依赖...
+echo [2/3] Installing root dependencies...
 cd /d "%~dp0"
 call npm install
 if errorlevel 1 (
-    echo 根目录依赖安装失败
+    echo Root dependency install failed
     pause
     exit /b 1
 )
 
 echo.
-echo [3/3] 启动开发服务器...
-echo 前端: http://localhost:3000
-echo 后端: http://localhost:8080
+echo [3/3] Starting dev server...
+echo Frontend: http://localhost:5173
+echo Backend:  http://localhost:8080
 echo.
-echo 按 Ctrl+C 停止服务器
+echo Press Ctrl+C to stop
 echo.
 
 call npm run dev

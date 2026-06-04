@@ -31,22 +31,19 @@ export const useScenarioStore = defineStore('scenario', () => {
 
   async function create(data) {
     const response = await createScenario(data)
-    scenarios.value.unshift(response.data)
+    await fetchScenarios()
     return response.data
   }
 
   async function update(id, data) {
     const response = await updateScenario(id, data)
-    const index = scenarios.value.findIndex(s => s.id === id)
-    if (index !== -1) {
-      scenarios.value[index] = response.data
-    }
+    await fetchScenarios()
     return response.data
   }
 
   async function remove(id) {
     await deleteScenario(id)
-    scenarios.value = scenarios.value.filter(s => s.id !== id)
+    await fetchScenarios()
   }
 
   return {

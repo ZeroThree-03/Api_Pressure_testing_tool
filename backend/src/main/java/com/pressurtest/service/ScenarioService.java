@@ -42,8 +42,13 @@ public class ScenarioService {
         scenario.setCreatedAt(LocalDateTime.now());
         scenario.setUpdatedAt(LocalDateTime.now());
         scenarioMapper.insert(scenario);
-        saveSteps(scenario.getId(), steps);
-        return scenario;
+        // SQLite doesn't support getGeneratedKeys, so fetch the latest entry
+        TestScenario saved = scenarioMapper.selectOne(
+                new LambdaQueryWrapper<TestScenario>()
+                        .orderByDesc(TestScenario::getId)
+                        .last("LIMIT 1"));
+        saveSteps(saved.getId(), steps);
+        return saved;
     }
 
     @Transactional

@@ -6,6 +6,7 @@ import { ElementPlusResolver } from 'unplugin-vue-components/resolvers'
 import path from 'path'
 
 export default defineConfig({
+  base: './',
   plugins: [
     vue(),
     AutoImport({
@@ -21,7 +22,8 @@ export default defineConfig({
     },
   },
   server: {
-    port: 3001,
+    host: '0.0.0.0',
+    port: 5173,
     proxy: {
       '/api': {
         target: 'http://localhost:8080',

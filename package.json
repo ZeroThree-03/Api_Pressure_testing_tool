@@ -2,6 +2,7 @@
   "name": "api-pressure-test-tool",
   "version": "1.0.0",
   "description": "API压测工具",
+  "main": "electron/main.js",
   "scripts": {
     "dev": "concurrently \"cd frontend && npm run dev\" \"cd backend && mvn spring-boot:run\"",
     "build": "cd frontend && npm run build && cd ../backend && mvn clean package -DskipTests",

@@ -10,10 +10,11 @@ import java.util.regex.Pattern;
 public class CurlParserService {
 
     private static final Pattern URL_PATTERN = Pattern.compile("(?:curl\\s+)?(?:-X\\s+\\w+\\s+)?(['\"]?)(https?://[^\\s'\"]+)\\1");
-    private static final Pattern METHOD_PATTERN = Pattern.compile("-X\\s+(\\w+)");
-    private static final Pattern HEADER_PATTERN = Pattern.compile("-H\\s+(['\"])([^'\"]+)\\1");
-    private static final Pattern BODY_PATTERN = Pattern.compile("-d\\s+(['\"])([^'\"]+)\\1");
-    private static final Pattern USER_PATTERN = Pattern.compile("-u\\s+(['\"])([^'\"]+)\\1");
+    private static final Pattern METHOD_PATTERN = Pattern.compile("(?:-X|--request)\\s+(\\w+)");
+    private static final Pattern HEADER_PATTERN = Pattern.compile("-H\\s+(['\"])((?:[^'\"\\\\]|\\\\.)+)\\1");
+    private static final Pattern BODY_PATTERN = Pattern.compile("-d\\s+(['\"])((?:[^'\"\\\\]|\\\\.)+)\\1");
+    private static final Pattern BODY_UNQUOTED_PATTERN = Pattern.compile("-d\\s+([^\\s'\"]+)");
+    private static final Pattern USER_PATTERN = Pattern.compile("-u\\s+(['\"])((?:[^'\"\\\\]|\\\\.)+)\\1");
 
     public Map<String, Object> parse(String curl) {
         if (curl == null || curl.isBlank()) {
@@ -45,6 +46,9 @@ public class CurlParserService {
 
         List<String> params = identifyParams(url, headers, body);
         result.put("params", params);
+
+        List<Map<String, String>> queryParams = extractQueryParams(url);
+        result.put("queryParams", queryParams);
 
         return result;
     }
@@ -88,6 +92,10 @@ public class CurlParserService {
         if (matcher.find()) {
             return matcher.group(2);
         }
+        Matcher unquoted = BODY_UNQUOTED_PATTERN.matcher(curl);
+        if (unquoted.find()) {
+            return unquoted.group(1);
+        }
         return null;
     }
 
@@ -97,6 +105,36 @@ public class CurlParserService {
             return matcher.group(2);
         }
         return null;
+    }
+
+    private List<Map<String, String>> extractQueryParams(String url) {
+        List<Map<String, String>> queryParams = new ArrayList<>();
+        if (url == null) return queryParams;
+
+        int questionMark = url.indexOf('?');
+        if (questionMark < 0 || questionMark == url.length() - 1) return queryParams;
+
+        String queryString = url.substring(questionMark + 1);
+        // Remove fragment if present
+        int hashIndex = queryString.indexOf('#');
+        if (hashIndex >= 0) {
+            queryString = queryString.substring(0, hashIndex);
+        }
+
+        for (String param : queryString.split("&")) {
+            if (param.isEmpty()) continue;
+            int eqIndex = param.indexOf('=');
+            Map<String, String> entry = new LinkedHashMap<>();
+            if (eqIndex >= 0) {
+                entry.put("name", param.substring(0, eqIndex));
+                entry.put("value", param.substring(eqIndex + 1));
+            } else {
+                entry.put("name", param);
+                entry.put("value", "");
+            }
+            queryParams.add(entry);
+        }
+        return queryParams;
     }
 
     private List<String> identifyParams(String url, Map<String, String> headers, String body) {

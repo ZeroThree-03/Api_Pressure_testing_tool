@@ -24,6 +24,14 @@
         <el-icon><List /></el-icon>
         <span>压测场景</span>
       </el-menu-item>
+      <el-menu-item index="/monitor-list">
+        <el-icon><Monitor /></el-icon>
+        <span>实时监控</span>
+      </el-menu-item>
+      <el-menu-item index="/tasks">
+        <el-icon><DataLine /></el-icon>
+        <span>任务列表</span>
+      </el-menu-item>
       <el-menu-item index="/settings">
         <el-icon><Setting /></el-icon>
         <span>设置</span>
@@ -35,7 +43,7 @@
 <script setup>
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
-import { HomeFilled, Document, Files, List, Setting } from '@element-plus/icons-vue'
+import { HomeFilled, Document, Files, List, Setting, DataLine, Monitor } from '@element-plus/icons-vue'
 
 const route = useRoute()
 const currentRoute = computed(() => route.path)

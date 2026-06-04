@@ -12,6 +12,7 @@ import java.util.concurrent.atomic.AtomicLong;
 @Data
 public class ResultCollector {
     private final ConcurrentLinkedQueue<TestResult> results = new ConcurrentLinkedQueue<>();
+    private final AtomicLong idCounter = new AtomicLong(0);
     private final AtomicInteger totalRequests = new AtomicInteger(0);
     private final AtomicInteger successRequests = new AtomicInteger(0);
     private final AtomicInteger failedRequests = new AtomicInteger(0);
@@ -19,6 +20,7 @@ public class ResultCollector {
     private final AtomicInteger activeThreads = new AtomicInteger(0);
 
     public void addResult(TestResult result) {
+        result.setId(idCounter.incrementAndGet());
         results.add(result);
         totalRequests.incrementAndGet();
         totalResponseTime.addAndGet(result.getResponseTime());

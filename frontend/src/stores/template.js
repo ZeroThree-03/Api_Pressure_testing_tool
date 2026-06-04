@@ -29,22 +29,19 @@ export const useTemplateStore = defineStore('template', () => {
 
   async function create(data) {
     const response = await createTemplate(data)
-    templates.value.unshift(response.data)
+    await fetchTemplates()
     return response.data
   }
 
   async function update(id, data) {
     const response = await updateTemplate(id, data)
-    const index = templates.value.findIndex(t => t.id === id)
-    if (index !== -1) {
-      templates.value[index] = response.data
-    }
+    await fetchTemplates()
     return response.data
   }
 
   async function remove(id) {
     await deleteTemplate(id)
-    templates.value = templates.value.filter(t => t.id !== id)
+    await fetchTemplates()
   }
 
   return {

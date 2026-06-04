@@ -6,9 +6,10 @@ files:
   - electron/**/*
   - frontend/dist/**/*
   - backend/target/*.jar
+asarUnpack:
+  - backend/target/*.jar
 win:
   target: nsis
-  icon: build/icon.ico
 nsis:
   oneClick: false
   allowToChangeInstallationDirectory: true

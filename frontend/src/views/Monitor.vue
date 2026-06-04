@@ -36,7 +36,7 @@ import QpsChart from '@/components/Monitor/QpsChart.vue'
 import ResponseTimeChart from '@/components/Monitor/ResponseTimeChart.vue'
 import ResultTree from '@/components/Monitor/ResultTree.vue'
 import { WebSocketClient } from '@/utils/websocket'
-import { startTask, stopTask } from '@/api/task'
+import { startTask, stopTask, getTaskStatus } from '@/api/task'
 
 const route = useRoute()
 
@@ -49,8 +49,17 @@ const responseTimeHistory = ref([])
 const results = ref([])
 let wsClient = null
 
-onMounted(() => {
+onMounted(async () => {
   if (currentTaskId.value) {
+    // 检查任务是否仍在运行
+    try {
+      const res = await getTaskStatus(currentTaskId.value)
+      if (res.data) {
+        isRunning.value = res.data.status === 'running'
+      }
+    } catch {
+      // ignore
+    }
     connectWebSocket(currentTaskId.value)
   }
 })
@@ -62,8 +71,14 @@ onUnmounted(() => {
 })
 
 function connectWebSocket(taskId) {
-  const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
-  const wsUrl = `${protocol}//${window.location.host}/ws/monitor/${taskId}`
+  let wsUrl
+  if (window.location.protocol === 'file:') {
+    // Electron production mode
+    wsUrl = `ws://localhost:8080/ws/monitor/${taskId}`
+  } else {
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
+    wsUrl = `${protocol}//${window.location.host}/ws/monitor/${taskId}`
+  }
   wsClient = new WebSocketClient(wsUrl)
 
   wsClient.on('monitor', (data) => {
@@ -73,7 +88,14 @@ function connectWebSocket(taskId) {
   })
 
   wsClient.on('result', (data) => {
-    results.value = [data, ...results.value].slice(0, 1000)
+    const newResults = Array.isArray(data) ? data : [data]
+    results.value = [...newResults.reverse(), ...results.value].slice(0, 1000)
+  })
+
+  wsClient.on('status', (status) => {
+    if (status === 'completed' || status === 'failed' || status === 'stopped') {
+      isRunning.value = false
+    }
   })
 
   wsClient.on('error', () => {

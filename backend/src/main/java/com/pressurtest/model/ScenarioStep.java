@@ -8,7 +8,7 @@ import lombok.Data;
 @Data
 @TableName("scenario_steps")
 public class ScenarioStep {
-    @TableId(type = IdType.AUTO)
+    @TableId(type = IdType.INPUT)
     private Long id;
     private Long scenarioId;
     private Long templateId;

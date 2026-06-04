@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 @Data
 @TableName("test_scenarios")
 public class TestScenario {
-    @TableId(type = IdType.AUTO)
+    @TableId(type = IdType.INPUT)
     private Long id;
     private String name;
     private String type;

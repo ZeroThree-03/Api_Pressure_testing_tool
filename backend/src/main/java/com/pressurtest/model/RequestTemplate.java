@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 @Data
 @TableName("request_templates")
 public class RequestTemplate {
-    @TableId(type = IdType.AUTO)
+    @TableId(type = IdType.INPUT)
     private Long id;
     private String name;
     private String method;

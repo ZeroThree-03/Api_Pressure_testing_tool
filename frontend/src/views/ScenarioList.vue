@@ -32,12 +32,13 @@
 </template>
 
 <script setup>
-import { onMounted } from 'vue'
+import { onMounted, onActivated } from 'vue'
 import { useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { ElMessageBox, ElMessage } from 'element-plus'
 import { Plus } from '@element-plus/icons-vue'
 import { useScenarioStore } from '@/stores/scenario'
+import { startTask } from '@/api/task'
 
 const router = useRouter()
 const scenarioStore = useScenarioStore()
@@ -51,6 +52,14 @@ onMounted(async () => {
   }
 })
 
+onActivated(async () => {
+  try {
+    await scenarioStore.fetchScenarios()
+  } catch {
+    // silent
+  }
+})
+
 function handleCreate() {
   router.push('/scenarios/new')
 }
@@ -59,8 +68,15 @@ function handleEdit(id) {
   router.push(`/scenarios/${id}`)
 }
 
-function handleRun(id) {
-  router.push(`/monitor/new?scenarioId=${id}`)
+async function handleRun(id) {
+  try {
+    const response = await startTask({ scenarioId: id })
+    const taskId = response.data
+    ElMessage.success('测试已启动')
+    router.push(`/monitor/${taskId}`)
+  } catch {
+    ElMessage.error('启动测试失败')
+  }
 }
 
 async function handleDelete(id) {

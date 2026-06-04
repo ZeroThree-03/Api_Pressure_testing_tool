@@ -3,7 +3,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch, onUnmounted } from 'vue'
+import { ref, onMounted, watch, onUnmounted, nextTick } from 'vue'
 import * as echarts from 'echarts'
 
 const props = defineProps({
@@ -15,10 +15,18 @@ const props = defineProps({
 
 const chartRef = ref(null)
 let chart = null
+let resizeObserver = null
 
-onMounted(() => {
+onMounted(async () => {
+  await nextTick()
   chart = echarts.init(chartRef.value)
   updateChart()
+  resizeObserver = new ResizeObserver(() => {
+    chart?.resize()
+  })
+  if (chartRef.value) {
+    resizeObserver.observe(chartRef.value)
+  }
 })
 
 watch(() => props.data, () => {
@@ -58,6 +66,7 @@ function updateChart() {
 }
 
 onUnmounted(() => {
+  resizeObserver?.disconnect()
   if (chart) {
     chart.dispose()
   }

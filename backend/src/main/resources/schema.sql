@@ -62,3 +62,25 @@ CREATE TABLE IF NOT EXISTS test_tasks (
     FOREIGN KEY (scenario_id) REFERENCES test_scenarios(id) ON DELETE CASCADE
 );
 CREATE INDEX IF NOT EXISTS idx_test_tasks_scenario_id ON test_tasks(scenario_id);
+
+-- Environments Table
+CREATE TABLE IF NOT EXISTS environments (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    base_url TEXT,
+    description TEXT,
+    is_active INTEGER DEFAULT 0,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Environment Variables Table
+CREATE TABLE IF NOT EXISTS env_variables (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    environment_id INTEGER NOT NULL,
+    name TEXT NOT NULL,
+    value TEXT,
+    description TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (environment_id) REFERENCES environments(id) ON DELETE CASCADE
+);
+CREATE INDEX IF NOT EXISTS idx_env_variables_environment_id ON env_variables(environment_id);

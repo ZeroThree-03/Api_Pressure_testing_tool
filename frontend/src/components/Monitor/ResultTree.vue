@@ -34,7 +34,7 @@
       </el-table-column>
     </el-table>
 
-    <el-dialog v-model="detailVisible" title="请求详情" width="800px">
+    <el-dialog v-model="detailVisible" title="请求详情" width="800px" destroy-on-close>
       <el-descriptions :column="1" border v-if="currentResult">
         <el-descriptions-item label="请求方法">
           {{ currentResult.method }}
@@ -49,10 +49,10 @@
           {{ currentResult.responseTime }}ms
         </el-descriptions-item>
         <el-descriptions-item label="请求体" v-if="currentResult.requestBody">
-          <pre>{{ currentResult.requestBody }}</pre>
+          <pre class="body-content">{{ formatBody(currentResult.requestBody) }}</pre>
         </el-descriptions-item>
         <el-descriptions-item label="响应体" v-if="currentResult.responseBody">
-          <pre>{{ currentResult.responseBody }}</pre>
+          <pre class="body-content">{{ formatBody(currentResult.responseBody) }}</pre>
         </el-descriptions-item>
         <el-descriptions-item label="错误信息" v-if="currentResult.error">
           <el-tag type="danger">{{ currentResult.error }}</el-tag>
@@ -85,6 +85,15 @@ function showDetail(row) {
   currentResult.value = row
   detailVisible.value = true
 }
+
+function formatBody(text) {
+  if (!text) return ''
+  try {
+    return JSON.stringify(JSON.parse(text), null, 2)
+  } catch {
+    return text
+  }
+}
 </script>
 
 <style lang="scss" scoped>
@@ -96,13 +105,29 @@ function showDetail(row) {
     margin-bottom: 16px;
     font-weight: 500;
   }
+}
 
-  pre {
-    background-color: var(--bg-secondary);
-    padding: 12px;
-    border-radius: 4px;
-    overflow-x: auto;
-    max-height: 200px;
-  }
+:deep(.el-descriptions__table) {
+  table-layout: fixed;
+  width: 100%;
+}
+
+:deep(.el-descriptions__label) {
+  width: 100px;
+}
+
+:deep(.el-descriptions__content) {
+  overflow: hidden;
+}
+
+.body-content {
+  background-color: var(--bg-secondary);
+  padding: 12px;
+  border-radius: 4px;
+  max-height: 300px;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  word-break: break-all;
+  margin: 0;
 }
 </style>

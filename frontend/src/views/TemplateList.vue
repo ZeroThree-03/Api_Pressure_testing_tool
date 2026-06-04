@@ -29,17 +29,22 @@
 </template>
 
 <script setup>
-import { onMounted } from 'vue'
+import { onMounted, onActivated } from 'vue'
 import { useRouter } from 'vue-router'
+import { storeToRefs } from 'pinia'
 import { ElMessageBox, ElMessage } from 'element-plus'
 import { Plus } from '@element-plus/icons-vue'
 import { useTemplateStore } from '@/stores/template'
 
 const router = useRouter()
 const templateStore = useTemplateStore()
-const { templates, loading } = templateStore
+const { templates, loading } = storeToRefs(templateStore)
 
 onMounted(() => {
+  templateStore.fetchTemplates()
+})
+
+onActivated(() => {
   templateStore.fetchTemplates()
 })
 

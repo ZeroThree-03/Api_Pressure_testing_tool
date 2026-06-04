@@ -8,14 +8,13 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 @Data
-@TableName("test_tasks")
-public class TestTask {
+@TableName("env_variables")
+public class EnvVariable {
     @TableId(type = IdType.INPUT)
     private Long id;
-    private Long scenarioId;
-    private String status;
-    private String config;
-    private LocalDateTime startedAt;
-    private LocalDateTime completedAt;
-    private String resultSummary;
+    private Long environmentId;
+    private String name;
+    private String value;
+    private String description;
+    private LocalDateTime createdAt;
 }

@@ -33,13 +33,28 @@ async function handleParse(curl) {
 }
 
 function handleSave(result) {
+  // 分离 baseUrl 和查询参数
+  let baseUrl = result.url || ''
+  let params = result.queryParams || []
+  if (baseUrl.includes('?')) {
+    const idx = baseUrl.indexOf('?')
+    if (params.length === 0) {
+      // URL 中有参数但未解析，手动拆分
+      const urlObj = new URL(baseUrl)
+      params = Array.from(urlObj.searchParams.entries()).map(([name, value]) => ({ name, value }))
+    }
+    baseUrl = baseUrl.substring(0, idx)
+  }
+
   router.push({
     path: '/templates/new',
     query: {
       method: result.method,
-      url: result.url,
+      url: baseUrl,
       headers: JSON.stringify(result.headers),
       body: result.body || '',
+      queryParams: params.length > 0 ? JSON.stringify(params) : '',
+      placeholderValues: result.placeholderValues ? JSON.stringify(result.placeholderValues) : '',
     },
   })
   ElMessage.success('请在模板编辑页面完善信息后保存')

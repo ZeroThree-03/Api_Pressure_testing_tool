@@ -27,7 +27,10 @@ public class TemplateService extends ServiceImpl<RequestTemplateMapper, RequestT
         template.setCreatedAt(LocalDateTime.now());
         template.setUpdatedAt(LocalDateTime.now());
         save(template);
-        return template;
+        // SQLite doesn't support getGeneratedKeys, so fetch the latest entry
+        return getOne(new LambdaQueryWrapper<RequestTemplate>()
+                .orderByDesc(RequestTemplate::getId)
+                .last("LIMIT 1"));
     }
 
     public RequestTemplate update(Long id, RequestTemplate template) {
